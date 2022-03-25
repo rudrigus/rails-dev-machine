@@ -54,3 +54,9 @@
     - name: Install aws-cli
       command: pip3 install awscli
 
+    - name: Config Docker
+      shell: |
+        groupadd docker
+        usermod -aG docker {{ user }}
+    
+    
