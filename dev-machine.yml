@@ -1,0 +1,53 @@
+---
+- name: Configure machine for rails development
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    force: no
+    initialize: yes
+    root: /
+
+  pre_tasks:
+    - name: Install the requirements
+      apt:
+        pkg:
+          - git
+          - build-essential
+          - autoconf
+          - bison
+          - libssl-dev
+          - libyaml-dev
+          - libreadline-dev
+          - zlib1g-dev
+          - libncurses5-dev
+          - libffi-dev
+          - libgdbm-dev
+          - libpq-dev
+          - curl
+          - ruby-full
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg2
+          - software-properties-common
+          - direnv
+
+  tasks:
+    - name: Add repositories
+      shell: |
+        apt remove docker docker-engine docker.io containerd runc
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    - name: Install packets
+      apt:
+        pkg:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+
+    - name: Install aws-cli
+      command: pip3 install awscli
+
