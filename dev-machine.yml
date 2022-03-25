@@ -60,3 +60,17 @@
         usermod -aG docker {{ user }}
     
     
+    - name: Config Direnv
+      lineinfile:
+        path: /home/{{ user }}/{{ item.filename }}
+        line: "{{ item.text }}"
+        state: present
+        create: yes
+      loop:
+        - { filename: '.bashrc', text: 'eval "$(direnv hook bash)"' }
+        - { filename: '.envrc', text: 'export MONGO_PREFIX=\"docker exec -i sgm-mongo\"' }
+
+    - name: Config Direnv part2
+      command: direnv allow
+      args:
+        chdir: /home/{{ user }}
