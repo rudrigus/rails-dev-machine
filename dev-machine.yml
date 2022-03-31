@@ -14,6 +14,7 @@
       apt:
         pkg:
           - git
+          - git-cola
           - build-essential
           - autoconf
           - bison
@@ -33,6 +34,7 @@
           - gnupg2
           - software-properties-common
           - direnv
+          - jq
 
   tasks:
     - name: Add repositories
@@ -50,27 +52,32 @@
           - docker-ce-cli
           - containerd.io
           - yarn
+          - apt-transport-https
 
     - name: Install aws-cli
-      command: pip3 install awscli
+      pip:
+        name: awscli
 
     - name: Config Docker
-      shell: |
-        groupadd docker
-        usermod -aG docker {{ user }}
-    
-    
+      user:
+        name: "{{ user }}"
+        groups: docker
+        append: yes
+
     - name: Config Direnv
       lineinfile:
         path: /home/{{ user }}/{{ item.filename }}
         line: "{{ item.text }}"
         state: present
         create: yes
+        group: "{{ user }}"
+        owner: "{{ user }}"
       loop:
         - { filename: '.bashrc', text: 'eval "$(direnv hook bash)"' }
-        - { filename: '.envrc', text: 'export MONGO_PREFIX=\"docker exec -i sgm-mongo\"' }
+        - { filename: '.envrc', text: 'export MONGO_PREFIX="docker exec -i sgm-mongo"' }
 
     - name: Config Direnv part2
+      become: yes  
+      become_user: "{{ user }}"
       command: direnv allow
-      args:
-        chdir: /home/{{ user }}
+
