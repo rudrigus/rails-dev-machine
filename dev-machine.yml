@@ -158,3 +158,17 @@
           chdir: "{{ project_dir }}"
       when: aws_configuration is failed
     # ----------------------------------------------------------------------------------------------------------
+
+    - name: Install Kubectl
+      shell: |
+        curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.20.4/2021-04-12/bin/linux/amd64/kubectl
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+      args:
+        creates: /usr/local/bin/kubectl
+
+    - name: Configure EKS
+      shell:
+        aws eks --region us-east-2 update-kubeconfig --name rcs-sgm-cluster0 --role-arn arn:aws:iam::721983100109:role/eksClusterGitlab
+      args:
+        creates: /home/{{ user }}/.kube/config
+
