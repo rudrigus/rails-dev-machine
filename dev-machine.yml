@@ -2,12 +2,15 @@
 - name: Configure machine for rails development
   hosts: localhost
   connection: local
-  gather_facts: no
+  gather_facts: yes
 
   vars:
     force: no
     initialize: yes
     root: /
+    rvm_ver: "2.5.8"
+    rvm_gpg_key1: "409B6B1796C275462A1703113804BB82D39DC0E3"
+    rvm_gpg_key2: "7D2BAF1CF37B13E2069D6956105BD0E739499BDB"
 
   pre_tasks:
     - name: Install the requirements
@@ -53,6 +56,30 @@
           - containerd.io
           - yarn
           - apt-transport-https
+
+    - name: Add RVM key
+      apt_key:
+        keyserver: keyserver.ubuntu.com
+        id: "{{ rvm_gpg_key1 }}"
+        id: "{{ rvm_gpg_key2 }}"
+
+    - name: Install RVM
+      command: \curl -sSL https://get.rvm.io | bash -s stable
+      args:
+        creates: /usr/local/rvm
+
+    - name: Install ruby
+      shell: |
+        /bin/bash --login -c 'source /home/{{ user }}/.bashrc
+        rvm install {{ rvm_ver }}
+        rvm --default use {{ rvm_ver }}
+        '
+      args:
+        creates: /home/{{ user }}/.rvm/gems/ruby-{{ rvm_ver }}
+      become: yes
+      become_user: "{{ user }}"
+      args:
+        executable: /bin/bash
 
     - name: Install aws-cli
       pip:
