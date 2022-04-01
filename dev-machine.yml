@@ -8,9 +8,10 @@
     force: no
     initialize: yes
     root: /
-    rvm_ver: "2.5.8"
     rvm_gpg_key1: "409B6B1796C275462A1703113804BB82D39DC0E3"
     rvm_gpg_key2: "7D2BAF1CF37B13E2069D6956105BD0E739499BDB"
+    rvm_ver: "2.5.8"
+    project_dir: "/home/{{ user }}/projetos/sgm"
 
   pre_tasks:
     - name: Install the requirements
@@ -108,3 +109,38 @@
       become_user: "{{ user }}"
       command: direnv allow
 
+    - name: Bundle
+      shell: |
+        /bin/bash --login -c 'rvm requirements
+        gem install bundler
+        bundle'
+      become: yes
+      become_user: "{{ user }}"
+      args:
+        chdir: "{{ project_dir }}"
+
+    - name: Get AWS key
+      pause:
+        prompt: "Enter AWS access key id"
+      register: aws_key_id
+
+    - name: Get AWS credentials
+      pause:
+        prompt: "Enter AWS secret access key"
+        echo: no
+      register: aws_secret_key
+
+    - name: Get AWS region
+      pause:
+        prompt: "Enter AWS default region"
+      register: aws_default_region
+
+    - name: Config aws-cli
+      shell: |
+        aws configure set aws_access_key_id {{ aws_key_id.user_input }}
+        aws configure set aws_secret_access_key {{ aws_secret_key.user_input }}
+        aws configure set default.region {{ aws_default_region.user_input }}
+      become: yes
+      become_user: "{{ user }}"
+      args:
+        chdir: "{{ project_dir }}"
